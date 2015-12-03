@@ -155,7 +155,8 @@ bake_log () {
 # @param $1 action
 # @param $2 description
 bake_error () {
-    echo -e "${C_RED}ERROR $1\t${C_IRED}${2}${C_OFF}"
+    local description=${2:-}
+    echo -e "${C_RED}ERROR $1\t${C_IRED}${description}${C_OFF}"
 }
 
 
