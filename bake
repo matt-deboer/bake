@@ -138,6 +138,23 @@ invoke () {
     done
 }
 
+# Converts name=value arguments to vars
+#
+# @example
+#   bake_params "rows" "columns"
+#
+# @param... Names of vars
+function bake_params {
+  set +ue
+  for param in "$@"; do
+    local val=$(eval echo \${$param:-})
+    if [ -z "$val" ]; then
+      bake_error "$param parameter is missing." && exit 1
+    fi
+  done
+  set -ue
+}
+
 # Prints a log message with no color.
 #
 # @example
@@ -220,6 +237,14 @@ main() {
     fi
 
     if [ -f $bakefile ]; then
+        # prepare variables for bake_params
+        for arg in "$@"; do
+          echo $arg | grep -Eq "\w+=(\w+)?"
+          if [ "$?" == "0" ]; then
+            eval "${arg}"
+          fi
+        done
+
         source $bakefile
         if [ "_$1" == "_" ]; then
             task_list $bakefile
@@ -247,8 +272,10 @@ create_bakefile() {
     [ -f ./Bakefile ] && return 1
     echo "#!/bin/bash
 
-function build {                    # Builds the project
-    echo sample build task
+#. Runs a build task on the project
+function build {
+    bake_params task
+    echo sample build \$task
 }
 " > Bakefile
     return 0

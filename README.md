@@ -17,10 +17,13 @@ Display tasks
 
     bake
 
-Run task
+Run `build` task
 
-    bake <task>
+    bake build
 
+Run `archive` task with `output` param
+
+    bake archive output=dist
 
 ## Example Bakefile
 
