@@ -174,7 +174,8 @@ bake_info () {
 # @param $1 action
 # @param $2 description
 bake_ok () {
-    echo -e "${C_GREEN}   OK ${C_IGREEN}$1\t${2}${C_OFF}"
+    local description=${2:-}
+    echo -e "${C_GREEN}   OK ${C_IGREEN}$1\t${description}${C_OFF}"
 }
 
 
