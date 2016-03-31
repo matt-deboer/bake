@@ -230,7 +230,6 @@ outdated() {
 
 # Main entry point into program.
 main() {
-    local options=$-
     if [ "$bakefile" == "" ]; then
         upsearch Bakefile
         bakefile_dir=$bake_result
@@ -246,7 +245,8 @@ main() {
           fi
         done
 
-        source $bakefile && set $options
+        source $bakefile
+        set +u
 
         if [ "_$1" == "_" ]; then
             task_list $bakefile
