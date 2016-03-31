@@ -2,18 +2,15 @@
 
 Simple Bash build/project utility in the style of rake.
 
-Not trying to reinvent wheel. Most node project Makefiles are just
-Bash scripts.
-
-
 ## Installation
 
-    npm install bake-bash
+Use [basher](https://github.com/basherpm/basher), a package manager for shell scripts and functions.
 
+    basher install dylanmei/bake
 
 # Usage
 
-Display tasks
+Display all tasks
 
     bake
 
