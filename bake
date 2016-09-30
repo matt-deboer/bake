@@ -241,7 +241,8 @@ main() {
         for arg in "$@"; do
           echo $arg | grep -Eq "\w+=(\w+)?"
           if [ "$?" == "0" ]; then
-            eval "${arg}"
+            # preserve quoted args by re-quoting before passing to eval
+            eval "$(echo $arg | cut -d'=' -f1)=\"$(echo $arg | cut -d'=' -f2)\""
           fi
         done
 
@@ -326,7 +327,7 @@ case "$1" in
 
     *)
         if test "$1" == ""; then
-            main $@
+            main "$@"
         elif test -f $1; then
             # allow scripts to be run by bake through #!
             # setting the bake_app displays usage with the script name instead of `bake`
@@ -334,7 +335,7 @@ case "$1" in
             bakefile=$1
             bakefile_dir=$PWD
             shift
-            main $@
+            main "$@"
         elif test -d $1; then
             if test -f $1/Bakefile; then
                 # allow scripts to be run by bake through #!
@@ -343,12 +344,12 @@ case "$1" in
                 bakefile=$1/Bakefile
                 bakefile_dir=$1
                 shift
-                main $@
+                main "$@"
             else
-                main $@
+                main "$@"
             fi
         else
-            main $@
+            main "$@"
         fi
         ;;
 esac
