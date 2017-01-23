@@ -91,7 +91,6 @@ upsearch () {
   bake_result=""
 }
 
-
 # Prints task list. Tasks are marked by preceding a function with a comment
 # that starts with `# @task`
 #
@@ -102,27 +101,51 @@ upsearch () {
 # @param $1 Bakefile
 task_list () {
 
-    # awk on OS X does not have gensub so using Perl which is installed
-    # almost everywhere
-    read -r -d '' task_script <<'SCRIPT'
-    # search for task description
-    if (s/^#\. (\w.*)$/\1/) {
-        $desc = $1;
-        $func = <>;
+    export BAKE_TASK_LIST=${BAKE_TASK_LIST:-}
 
-        # search for task name in this format "function task_name" or
-        # "task_name ()"
-        if (!($func =~ s/^.*function ([\w:-]+).*$/\1/)) {
-            $func =~ s/^([\w:-]+).*\(\).*$/\1/;
-        }
-        chomp($func);
-        printf "%-16s $desc\n", $func;
-    }
-SCRIPT
-    perl -ne "$task_script" $1 | sort
-    [[ $(type -t on_task_list) == "function" ]] && on_task_list
+    set +e
+    while read -r description; do
+
+      if [[ "${description}" != "--" ]]; then
+        if read -r declaration && [[ "${declaration}" != "--" ]]; then
+          read -r; # consume divider
+          local name=$(echo $declaration | sed 's/function //' | sed 's/( *)//' | sed 's/ *{//' | tr -d ' ')
+          line=$(echo $description | sed 's/^#[.]/'$name'/')
+          export BAKE_TASK_LIST="${BAKE_TASK_LIST}|${line}"
+        fi
+      fi
+    done < <(cat $1 | grep -E '^(function [A-Za-z0-9_:-]+\s*{|[A-Za-z0-9_:-]+\s*\(\)\s*{)' -B 1)
+    set -e
 }
 
+# Print the currently loaded task list
+#
+print_task_list () {
+    local max_width=0
+    local list=$(echo "${BAKE_TASK_LIST:1}" |tr "|" "\n"|sort -u)
+    while read -r name desc; do
+        if [[ ${#name} -gt $max_width ]]; then
+            max_width=${#name}
+        fi
+    done < <(echo "${list}")
+    ((max_width+=2))
+
+    while read -r name desc; do
+      desc=$(echo ${desc} | sed 's/params:/\'${C_IGREEN}'params:\'${C_CYAN}'/')
+      printf "${C_GREEN}%-${max_width}s${C_OFF} ${desc}${C_OFF}\n" $name
+    done < <(echo "${list}")
+}
+
+# Includes an external script.
+#
+# @param $1 File pattern to include
+include () {
+    local files=$1
+    for file in $(ls -d -1 $files); do
+        task_list $file
+        source $file
+    done
+}
 
 # Invokes function once.
 #
@@ -237,6 +260,9 @@ main() {
     fi
 
     if [ -f $bakefile ]; then
+        # allow included 'sub-bake' files to refer to top-level bake by $bake
+        export bake="${this_bake} ${bakefile_dir}"
+
         # prepare variables for bake_params
         for arg in "$@"; do
           echo $arg | grep -Eq "\w+=(\w+)?"
@@ -250,7 +276,7 @@ main() {
         set +u
 
         if [ "_$1" == "_" ]; then
-            task_list $bakefile
+            task_list $bakefile && print_task_list
         else
             # ensure working directory is from Bakefile
             pushd $bakefile_dir >/dev/null
@@ -258,9 +284,9 @@ main() {
                 "$@"
             elif [[ $(type -t on_task_not_found) == "function" ]]; then
                 on_task_not_found $@
-                [[ $? -eq 1 ]] && task_list $bakefile
+                [[ $? -eq 1 ]] && task_list $bakefile && print_task_list
             else
-                task_list $bakefile
+                task_list $bakefile && print_task_list
             fi
             popd > /dev/null
         fi
@@ -307,6 +333,7 @@ scriptdir() {
 
 
 bake_app=`basename $0`
+this_bake="$(cd `dirname $0` && pwd)/${bake_app}"
 case "$1" in
     --install)
         if test -f /usr/local/bin/bake; then
