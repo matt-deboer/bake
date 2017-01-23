@@ -27,6 +27,12 @@ function coffee {
     bake_ok "coffe" "compiled"
 }
 
+#. Repeats the input. params: text
+function repeat {
+    bake_params text
+
+    printf "text was: '%s'\n" "$text"
+}
 
 function on_task_not_found {
     echo "Task not found $1"

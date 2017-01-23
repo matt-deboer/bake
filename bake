@@ -268,7 +268,7 @@ main() {
           echo $arg | grep -Eq "\w+=(\w+)?"
           if [ "$?" == "0" ]; then
             # preserve quoted args by re-quoting before passing to eval
-            eval "$(echo $arg | cut -d'=' -f1)=\"$(echo $arg | cut -d'=' -f2)\""
+            eval "$(echo $arg | cut -d'=' -f1)='$(echo $arg | cut -d= -f2)'"
           fi
         done
 
