@@ -1,0 +1,6 @@
+#. Boops the project
+function boop {
+    bake_ok boop!
+
+    $bake beep
+}

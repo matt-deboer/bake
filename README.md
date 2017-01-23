@@ -107,6 +107,13 @@ Determines if target is older than reference, returning 1 if outdated.
     outdated build src || return 1          # skip rest of task
     outdated build src && invoke "compile"  # compile if outdated
 
+Includes external script(s).
+
+    include "<file_glob>"
+
+    example: include "includes/*"
+ - _Note: use `$bake` to invoke bake from an included task retaining the original top level directory_
+
 
 Run a dynamic task when task `$1` is not found. For example, to run
 a test as the first argument to `bake`, add this to `Bakefile`

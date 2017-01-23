@@ -1,0 +1,10 @@
+#. Beeps the project
+function beep {
+  bake_ok beep!
+  invoke another_private_function
+  bake_ok "pwd: $(pwd)"
+}
+
+another_private_function() {
+  bake_ok "called another private beep function..."
+}

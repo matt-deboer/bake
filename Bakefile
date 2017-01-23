@@ -1,3 +1,5 @@
+include "./includes/*"
+
 function private {
     echo in private
 }
