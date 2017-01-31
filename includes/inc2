@@ -4,3 +4,12 @@ function boop {
 
     $bake beep
 }
+
+include "nested/*"
+
+#. Herp derp
+function herp {
+    bake_ok "herp..."
+
+    $bake derp
+}

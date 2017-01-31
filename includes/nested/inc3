@@ -1,0 +1,10 @@
+#. Derps the project
+function derp {
+  bake_ok derp!
+  invoke yet_another_private_function
+  bake_ok "pwd: $(pwd)"
+}
+
+yet_another_private_function() {
+  bake_ok "called another private derp function..."
+}

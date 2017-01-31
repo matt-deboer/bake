@@ -131,20 +131,44 @@ print_task_list () {
     ((max_width+=2))
 
     while read -r name desc; do
-      desc=$(echo ${desc} | sed 's/params:/\'${C_IGREEN}'params:\'${C_CYAN}'/')
-      printf "${C_GREEN}%-${max_width}s${C_OFF} ${desc}${C_OFF}\n" $name
+      if [[ -n "${name}" ]]; then
+        desc=$(echo ${desc} | sed 's/params:/\'${C_IGREEN}'params:\'${C_CYAN}'/')
+        printf "${C_GREEN}%-${max_width}s${C_OFF} ${desc}${C_OFF}\n" $name
+      fi
     done < <(echo "${list}")
+
+    # submodules
+    if [[ -n "$(find ${bakefile_dir} -d 2 -name Bakefile -type f)" ]]; then
+        printf "\n${C_IGREEN}submodules:${C_OFF}\n"
+        for submodule in $(find . -d 2 -name Bakefile -type f); do
+            echo "$(basename $(dirname $submodule))"
+        done
+    fi
+
 }
 
 # Includes an external script.
 #
 # @param $1 File pattern to include
 include () {
+
+    local abs_bakefile_dir=$(cd $bakefile_dir 2>/dev/null && pwd || true)
+    local incoming_directory=$(pwd)
+    if [[ $abs_bakefile_dir == $incoming_directory* ]] && [[ $abs_bakefile_dir != $incoming_directory ]]; then
+        # if bakefile_dir is a subdirectory of PWD, jump to bakefile_dir
+        pushd $abs_bakefile_dir  > /dev/null
+    fi
+
     local files=$1
-    for file in $(ls -d -1 $files); do
+    for file in $(find $files -d 0 -type f); do
         task_list $file
-        source $file
+        pushd $(dirname $file) > /dev/null
+        source $(basename $file)
+        popd > /dev/null
     done
+    if [[ $abs_bakefile_dir == $incoming_directory* ]] && [[ $abs_bakefile_dir != $incoming_directory ]]; then
+        popd  > /dev/null
+    fi
 }
 
 # Invokes function once.
@@ -160,6 +184,8 @@ invoke () {
         fi
     done
 }
+
+
 
 # Converts name=value arguments to vars
 #
@@ -331,7 +357,6 @@ scriptdir() {
     eval $__resultvar="$(cd `dirname "$1"` && cd -P "$__real" && pwd )"
 }
 
-
 bake_app=`basename $0`
 this_bake="$(cd `dirname $0` && pwd)/${bake_app}"
 case "$1" in
@@ -368,8 +393,8 @@ case "$1" in
                 # allow scripts to be run by bake through #!
                 # setting the bake_app displays usage with the script name instead of `bake`
                 bake_app=bake
-                bakefile=$1/Bakefile
-                bakefile_dir=$1
+                bakefile_dir=$(cd $1 && pwd)
+                bakefile=$bakefile_dir/Bakefile
                 shift
                 main "$@"
             else
@@ -380,3 +405,4 @@ case "$1" in
         fi
         ;;
 esac
+

@@ -1,0 +1,7 @@
+
+#. Builds the project
+function build {
+    # ensures clean is called only once
+    invoke clean
+    bake_ok building ...
+}
