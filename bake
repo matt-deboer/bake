@@ -177,9 +177,12 @@ include () {
 invoke () {
     local invoked
     for f in "$@"; do
-        eval "invoked=\$$1_invoked"
+        f=${f//-/____}
+        set +ue
+        eval "invoked=\$${f}_invoked"
+        set -ue
         if [ ! "$invoked" == "1" ]; then
-            eval $1_invoked=1
+            eval "${f}_invoked=1"
             "$@"
         fi
     done
@@ -198,7 +201,7 @@ function bake_params {
   for param in "$@"; do
     local val=$(eval echo \${$param:-})
     if [ -z "$val" ]; then
-      bake_error "$param parameter is missing." && exit 1
+      bake_error "'$param' parameter is missing." && exit 1
     fi
   done
   set -ue
@@ -231,7 +234,8 @@ bake_error () {
 # @param $1 action
 # @param $2 description
 bake_info () {
-    echo -e "${C_CYAN}      $1\t${C_ICYAN}${2}${C_OFF}"
+    local description=${2:-}
+    echo -e "${C_CYAN}      $1\t${C_ICYAN}${description}${C_OFF}"
 }
 
 
@@ -250,7 +254,8 @@ bake_ok () {
 # @param $1 Exit code.
 # @param $2 [optional] Message.
 bake_exit() {
-    [[ -n $2 ]] && echo $2
+    local message=${2:-}
+    [[ -n $message ]] && echo $message
     exit $1
 }
 
