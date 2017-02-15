@@ -138,9 +138,9 @@ print_task_list () {
     done < <(echo "${list}")
 
     # submodules
-    if [[ -n "$(find ${bakefile_dir} -d 2 -name Bakefile -type f)" ]]; then
+    if [[ -n "$(find "${bakefile_dir:-.}" -mindepth 2 -maxdepth 2 -name Bakefile -type f)" ]]; then
         printf "\n${C_IGREEN}submodules:${C_OFF}\n"
-        for submodule in $(find . -d 2 -name Bakefile -type f); do
+        for submodule in $(find . -mindepth 2 -maxdepth 2 -name Bakefile -type f); do
             echo "$(basename $(dirname $submodule))"
         done
     fi
@@ -160,7 +160,7 @@ include () {
     fi
 
     local files=$1
-    for file in $(find $files -d 0 -type f); do
+    for file in $(find -depth 0 "$files" -type f); do
         task_list $file
         pushd $(dirname $file) > /dev/null
         source $(basename $file)
