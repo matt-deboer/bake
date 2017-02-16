@@ -160,7 +160,7 @@ include () {
     fi
 
     local files=$1
-    for file in $(find -depth 0 "$files" -type f); do
+    for file in $(ls $files); do
         task_list $file
         pushd $(dirname $file) > /dev/null
         source $(basename $file)
@@ -187,8 +187,6 @@ invoke () {
         fi
     done
 }
-
-
 
 # Converts name=value arguments to vars
 #
