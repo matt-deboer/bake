@@ -5,6 +5,7 @@ function beep {
   bake_ok "pwd: $(pwd)"
 }
 
+# this is some private function
 another_private_function() {
   bake_ok "called another private beep function..."
 }

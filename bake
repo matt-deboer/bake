@@ -106,7 +106,7 @@ task_list () {
     set +e
     while read -r description; do
 
-      if [[ "${description}" != "--" ]]; then
+      if [[ "${description}" != "--" ]] && [[ -n "$(echo $description | grep -E '^#\.')" ]]; then
         if read -r declaration && [[ "${declaration}" != "--" ]]; then
           read -r; # consume divider
           local name=$(echo $declaration | sed 's/function //' | sed 's/( *)//' | sed 's/ *{//' | tr -d ' ')
@@ -161,10 +161,12 @@ include () {
 
     local files=$1
     for file in $(ls $files); do
-        task_list $file
-        pushd $(dirname $file) > /dev/null
-        source $(basename $file)
-        popd > /dev/null
+        if [[ -f $file ]]; then
+            task_list $file
+            pushd $(dirname $file) > /dev/null
+            source $(basename $file)
+            popd > /dev/null
+        fi
     done
     if [[ $abs_bakefile_dir == $incoming_directory* ]] && [[ $abs_bakefile_dir != $incoming_directory ]]; then
         popd  > /dev/null
